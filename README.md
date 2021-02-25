@@ -42,12 +42,18 @@ develop your own taps and targets.
 
 ## Config Guide
 
-`TODO:` Provide instructions here for users of the tap:
-
 ### Accepted Config Options
 
-- [ ] `TODO:` Provide a list of config options accepted by the tap.
+- `tenant_id` - The unique identifier for the Power BI tenant.
+- `username` - Username to use in the flow.
+- `password` - Password to use in the auth flow.
+- `start_date` - Optional. Earliest date of data to stream.
 
 ### Source Authentication and Authorization
 
-- [ ] `TODO:` If your tap requires special access on the source system, or any special authentication requirements, provide those here.
+_**NOTE:** Access to the Power BI REST API requires a service account (aka "Service Principal"), which must
+be created by someone with admin access to Azure Active Directory (AAD)._
+
+More information on this process is available under the 
+[Automation with service principals](https://docs.microsoft.com/en-us/power-bi/admin/service-premium-service-principal)
+topic on docs.microsoft.com.
