@@ -2,10 +2,10 @@
 
 from copy import deepcopy
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
-from tap_base.streams import RESTStreamBase
-from tap_base.authenticators import APIAuthenticatorBase, SimpleAuthenticator, OAuthAuthenticator, OAuthJWTAuthenticator
+from singer_sdk.streams import RESTStream
+from singer_sdk.authenticators import APIAuthenticatorBase, SimpleAuthenticator, OAuthAuthenticator, OAuthJWTAuthenticator
 from singer_sdk.helpers.typing import (
     ArrayType,
     BooleanType,
@@ -17,7 +17,7 @@ from singer_sdk.helpers.typing import (
 )
 
 
-class TapPowerBIMetadataStream(RESTStreamBase):
+class TapPowerBIMetadataStream(RESTStream):
     """PowerBIMetadata stream class."""
 
     url_base = "https://api.powerbi.com/v1.0/myorg"

@@ -3,7 +3,7 @@
 from pathlib import Path
 from typing import List
 import click
-from singer_sdk import TapBase
+from singer_sdk import Tap, Stream
 from singer_sdk.helpers.typing import (
     ArrayType,
     BooleanType,
@@ -14,7 +14,7 @@ from singer_sdk.helpers.typing import (
     StringType,
 )
 
-from tap_powerbi_metadata.stream import (
+from tap_powerbi_metadata.streams import (
     TapPowerBIMetadataStream,
     ActivityEventsStream,
 )
@@ -25,7 +25,7 @@ STREAM_TYPES = [
     ActivityEventsStream,
 ]
 
-class TapPowerBIMetadata(TapBase):
+class TapPowerBIMetadata(Tap):
     """PowerBIMetadata tap class."""
 
     name = "tap-powerbi-metadata"
