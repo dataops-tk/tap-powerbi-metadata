@@ -33,8 +33,8 @@ class TapPowerBIMetadataStream(RESTStreamBase):
     def authenticator(self) -> APIAuthenticatorBase:
         return OAuthAuthenticator(
             stream=self,
-            auth_endpoint="TODO: OAuth Endpoint URL",
-            oauth_scopes="TODO: OAuth Scopes",
+            auth_endpoint=f"https://login.microsoftonline.com/{self.config['tenant_id']}/oauth2/token",
+            oauth_scopes="https://analysis.windows.net/powerbi/api",
         )
 
 
