@@ -1,6 +1,6 @@
 {
-    "tenant_id": "****",
-    "username": "****",
-    "password": "****",
-    "start_date": "****"
+    "tenant_id": "common",
+    "username": "asdf1234****@zyx.com",
+    "password": "asdf1234****",
+    "start_date": "2019-11-02T00:00:00Z"
 }
