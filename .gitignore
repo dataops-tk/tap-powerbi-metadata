@@ -1,5 +1,9 @@
-# Secrets and internal config files
-.secrets/*
+# Hide secrets and internal config files
+**/.secrets/**
+
+# Allow template files and Readme docs in secrets folders
+!**/.secrets/*.template
+!**/.secrets/README.md
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
