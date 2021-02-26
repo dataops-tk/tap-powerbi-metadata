@@ -42,10 +42,11 @@ class TapPowerBIMetadataStream(RESTStream):
 
     def get_url_params(self, partition: Optional[dict]) -> Dict[str, Any]:
         """Return a dictionary of values to be used in URL parameterization."""
-        state = self.get_stream_or_partition_state(partition)
-        result = deepcopy(state)
-        result.update({"start_date": self.config.get("start_date")})
-        return result
+        params = {}
+        starting_datetime = self.get_starting_datetime(partition)
+        if starting_datetime:
+            params.update({"startDateTime": starting_datetime})
+        return params
 
     @property
     def authenticator(self) -> APIAuthenticatorBase:
@@ -65,11 +66,6 @@ class TapPowerBIMetadataStream(RESTStream):
             return params
         params["continuationToken"] = next_page
         return params
-
-    def get_url_params(self, partition: Optional[dict] = None) -> dict:
-        if "start_date" in self.config:
-            return { "startDateTime": self.config.get("start_date") }
-        return {}
 
 
 class ActivityEventsStream(TapPowerBIMetadataStream):

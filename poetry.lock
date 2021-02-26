@@ -353,7 +353,7 @@ dev = ["pylint", "ipython", "ipdb", "nose", "singer-tools"]
 
 [[package]]
 name = "singer-sdk"
-version = "0.0.2.dev1057391906"
+version = "0.0.2.dev1057601165"
 description = "An open framework for building singer-compliant taps"
 category = "main"
 optional = false
@@ -435,7 +435,7 @@ testing = ["pytest (>=3.5,!=3.7.3)", "pytest-checkdocs (>=1.2.3)", "pytest-flake
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.6"
-content-hash = "6f0275020ae368a1c72fd666e0ca4550d453c300bb79e3143de83413bf08724c"
+content-hash = "a7031d1526bf5dd1fc95b99291184945036f5206e726217af6a31f85aed02263"
 
 [metadata.files]
 atomicwrites = [
@@ -736,8 +736,8 @@ singer-python = [
     {file = "singer-python-5.9.0.tar.gz", hash = "sha256:54b85914389312db9cf7b2800829e2d1a4b2d5a43a96d677d2a35311499d37c7"},
 ]
 singer-sdk = [
-    {file = "singer-sdk-0.0.2.dev1057391906.tar.gz", hash = "sha256:b32a109563db705c753194386fead136b1e5b4e59e49d92fffed676b2e17e203"},
-    {file = "singer_sdk-0.0.2.dev1057391906-py3-none-any.whl", hash = "sha256:3bbbdbd348273f4128882032163e202a8c02d9039b43b23084e4204b5cbe5027"},
+    {file = "singer-sdk-0.0.2.dev1057601165.tar.gz", hash = "sha256:3d7a846b763df1c7615203db4933ff841c0dadb5df623cdbc879291ebafffa95"},
+    {file = "singer_sdk-0.0.2.dev1057601165-py3-none-any.whl", hash = "sha256:254119b944605b438642c2b69776c3a8cb73317932bb5bec21ae476a0bdeebfa"},
 ]
 six = [
     {file = "six-1.15.0-py2.py3-none-any.whl", hash = "sha256:8b74bedcbbbaca38ff6d7491d76f2b06b3592611af620f8426e82dddb04a5ced"},
