@@ -3,6 +3,9 @@
 from copy import deepcopy
 from pathlib import Path
 from typing import Any, Dict, Optional
+import requests
+from singer_sdk.helpers.util import utc_now
+
 
 from singer_sdk.streams import RESTStream
 from singer_sdk.authenticators import APIAuthenticatorBase, SimpleAuthenticator, OAuthAuthenticator, OAuthJWTAuthenticator
@@ -15,6 +18,21 @@ from singer_sdk.helpers.typing import (
     PropertiesList,
     StringType,
 )
+
+
+class OAuthActiveDirectoryAuthenticator(OAuthAuthenticator):
+    # https://pivotalbi.com/automate-your-power-bi-dataset-refresh-with-python
+
+    @property
+    def oauth_request_body(self) -> dict:
+        return {
+            'grant_type': 'password',
+            'scope': 'https://api.powerbi.com',
+            'resource': 'https://analysis.windows.net/powerbi/api',
+            'client_id': self.config["client_id"],
+            'username': self.config.get("username", self.config["client_id"]),
+            'password': self.config["password"],
+        }
 
 
 class TapPowerBIMetadataStream(RESTStream):
@@ -31,11 +49,27 @@ class TapPowerBIMetadataStream(RESTStream):
 
     @property
     def authenticator(self) -> APIAuthenticatorBase:
-        return OAuthAuthenticator(
+        return OAuthActiveDirectoryAuthenticator(
             stream=self,
             auth_endpoint=f"https://login.microsoftonline.com/{self.config['tenant_id']}/oauth2/token",
             oauth_scopes="https://analysis.windows.net/powerbi/api",
         )
+
+    def get_next_page_token(self, response: dict) -> Optional[Any]:
+        """Return token for identifying next page or None if not applicable."""
+        return response.get("continuationToken")
+
+    def insert_next_page_token(self, next_page, params) -> Any:
+        """Inject next page token into http request params."""
+        if (not next_page) or next_page == 1:
+            return params
+        params["continuationToken"] = next_page
+        return params
+
+    def get_url_params(self, partition: Optional[dict] = None) -> dict:
+        if "start_date" in self.config:
+            return { "startDateTime": self.config.get("start_date") }
+        return {}
 
 
 class ActivityEventsStream(TapPowerBIMetadataStream):

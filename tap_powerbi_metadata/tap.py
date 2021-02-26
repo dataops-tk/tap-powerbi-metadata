@@ -31,6 +31,7 @@ class TapPowerBIMetadata(Tap):
     name = "tap-powerbi-metadata"
     config_jsonschema = PropertiesList(
         StringType("tenant_id"),
+        StringType("client_id"),
         StringType("username"),
         StringType("password"),
         DateTimeType("start_date", optional=True),
