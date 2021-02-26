@@ -39,7 +39,7 @@ class TapPowerBIMetadataStream(RESTStream):
 
 
 class ActivityEventsStream(TapPowerBIMetadataStream):
-    stream_name = "ActivityEvents"
+    name = "ActivityEvents"
     path = "/admin/activityevents"
     primary_keys = ["Id"]
     replication_key = "CreationTime"
