@@ -30,11 +30,11 @@ class TapPowerBIMetadata(Tap):
 
     name = "tap-powerbi-metadata"
     config_jsonschema = PropertiesList(
-        StringType("tenant_id"),
-        StringType("client_id"),
-        StringType("username"),
-        StringType("password"),
-        DateTimeType("start_date", optional=True),
+        StringType("tenant_id", required=True),
+        StringType("client_id", required=True),
+        StringType("username", required=True),
+        StringType("password", required=True),
+        DateTimeType("start_date"),
     ).to_dict()
 
     def discover_streams(self) -> List[Stream]:
