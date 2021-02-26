@@ -61,7 +61,7 @@ class TapPowerBIMetadataStream(RESTStream):
             oauth_scopes="https://analysis.windows.net/powerbi/api",
         )
 
-    def get_next_page_token(self, response) -> Optional[Any]:
+    def get_next_page_token(self, response: requests.Response) -> Optional[Any]:
         """Return token for identifying next page or None if not applicable."""
         #TODO Continuation Token not properly parsed (https://github.com/dataops-tk/tap-powerbi-metadata/issues/4)
         #resp_json = response.json()
@@ -69,7 +69,7 @@ class TapPowerBIMetadataStream(RESTStream):
         #return resp_json.get("continuationToken")
         return None
 
-    def insert_next_page_token(self, next_page, params) -> Any:
+    def insert_next_page_token(self, next_page: Any, params: dict) -> Any:
         """Inject next page token into http request params."""
         if (not next_page) or next_page == 1:
             return params
@@ -78,11 +78,12 @@ class TapPowerBIMetadataStream(RESTStream):
         params["continuationToken"] = "'" + next_page + "'"
         return params
 
-    def parse_response(self, response) -> Iterable[dict]:
+    def parse_response(self, response: requests.Response) -> Iterable[dict]:
         """Parse the response and return an iterator of result rows."""
         resp_json = response.json()
         for row in resp_json.get("activityEventEntities"):
             yield row
+
 
 class ActivityEventsStream(TapPowerBIMetadataStream):
     name = "ActivityEvents"
