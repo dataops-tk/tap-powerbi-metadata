@@ -11,6 +11,8 @@ This Singer-compliant tap was created using the [Singer SDK](https://gitlab.com/
 
 ## Getting Started
 
+`TODO: Delete this section after tap is tested and working`
+
 - [ ] As a first step, you will want to scan the entire project for the text "`TODO:`" and complete any recommended steps.
 - [ ] Once you have a boilerplate prepped, you'll want to setup Poetry and create the virtual environment for your project:
 
@@ -44,10 +46,15 @@ develop your own taps and targets.
 
 ### Accepted Config Options
 
+- `client_id` - The unique client ID for the Power BI tenant.
 - `tenant_id` - The unique identifier for the Power BI tenant.
 - `username` - Username to use in the flow.
 - `password` - Password to use in the auth flow.
 - `start_date` - Optional. Earliest date of data to stream.
+
+Note:
+
+- A sample config file is available at `.secrets/config.json.template`
 
 ### Source Authentication and Authorization
 
@@ -57,3 +64,8 @@ be created by someone with admin access to Azure Active Directory (AAD)._
 More information on this process is available under the 
 [Automation with service principals](https://docs.microsoft.com/en-us/power-bi/admin/service-premium-service-principal)
 topic on docs.microsoft.com.
+
+- If you do not have access to a Power BI tenant, this _might_ be helpful:
+  - https://docs.microsoft.com/en-us/power-bi/developer/embedded/create-an-azure-active-directory-tenant
+
+`TODO:` Test out this process of creating a new tenant and service principal for testing purposes and so users/developers won't have to run this in prod to know it works properly.
