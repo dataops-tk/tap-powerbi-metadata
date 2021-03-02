@@ -125,13 +125,27 @@ class ActivityEventsStream(TapPowerBIMetadataStream):
         StringType("DataflowId"),
         StringType("DataflowName"),
         StringType("DataflowType"),
-        StringType("DataflowAccessTokenRequestParameters"),
+        # ComplexType("DataflowAccessTokenRequestParameters",
+        #     IntegerType("tokenLifetimeInMinutes"),
+        #     IntegerType("permissions"),
+        #     StringType("entityName"),
+        #     StringType("partitionUri")
+        # ),
         StringType("CustomVisualAccessTokenResourceId"),
         StringType("CustomVisualAccessTokenSiteUri"),
-        StringType("ExportedArtifactInfo"),
+        ComplexType("ExportedArtifactInfo",
+            StringType("ExportType"),
+            StringType("ArtifactType"),
+            IntegerType("ArtifactId")
+        ),
         StringType("DataConnectivityMode"),
         StringType("LastRefreshTime"),
-        StringType("Schedules"),
+        # ComplexType("Schedules",
+        #      StringType("RefreshFrequency"),
+        #      StringType("TimeZone"),
+        #      ArrayType("Days", StringType),
+        #      ArrayType("Time", StringType)
+        # ),
         StringType("ImportId"),
         StringType("ImportType"),
         StringType("ImportSource"),
@@ -139,7 +153,14 @@ class ActivityEventsStream(TapPowerBIMetadataStream):
         StringType("RefreshType"),
         StringType("DashboardId"),
         StringType("DashboardName"),
-        StringType("Datasets"),
-        StringType("ModelsSnapshots"),
-        StringType("OrgAppPermission"),
+        # ArrayType("Datasets",ComplexType(
+        #      StringType("DatasetId"),
+        #      StringType("DatasetName")
+        #     )
+        # ),
+        ArrayType("ModelsSnapshots",IntegerType),
+        # ComplexType("OrgAppPermission",
+        #     StringType("recipients"),
+        #     StringType("permissions")
+        # )
     ).to_dict()
