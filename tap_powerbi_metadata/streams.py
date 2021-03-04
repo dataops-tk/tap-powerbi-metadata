@@ -4,6 +4,7 @@ from copy import deepcopy
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Dict, Iterable, Optional
+from urllib import parse
 import requests
 from singer_sdk.helpers.util import utc_now
 
@@ -47,6 +48,9 @@ class TapPowerBIMetadataStream(RESTStream):
         """Return a dictionary of values to be used in URL parameterization."""
         params = {}
         starting_datetime = self.get_starting_datetime(partition)
+        state = self.get_stream_or_partition_state(None)
+        self.logger.info("state:" + str(state))
+        state["latestUrlStartDate"] = starting_datetime
         if starting_datetime:
             params.update({"startDateTime": starting_datetime.strftime("'%Y-%m-%dT%H:%M:%SZ'")})
             ending_datetime = starting_datetime.replace(hour=0, minute=0, second=0) + timedelta(days=1) + timedelta(seconds=-1)
@@ -64,8 +68,11 @@ class TapPowerBIMetadataStream(RESTStream):
 
     def get_next_page_token(self, response: requests.Response) -> Optional[Any]:
         """Return token for identifying next page or None if not applicable."""
-        self.logger.info(response)
+        req_url = response.request.url
+        req_params = parse.parse_qs(parse.urlparse(req_url).query)
+        self.logger.info(req_params)
         resp_json = response.json()
+        #self.logger.info(resp_json)
         #continuationUri = resp_json.get("continuationUri")
         continuationToken = resp_json.get("continuationToken")
         if (continuationToken):
@@ -73,22 +80,24 @@ class TapPowerBIMetadataStream(RESTStream):
             self.logger.info("Next page token: {}".format(next_page_token))
         else:
             next_page_token = "IncrementDate"
+        state = self.get_stream_or_partition_state(None)
+        self.logger.info("state:" + str(state))
         return next_page_token
 
     def insert_next_page_token(self, next_page: Any, params: dict) -> Any:
         """Inject next page token into http request params."""
         if (not next_page) or next_page == 1:
             return params
-        # if next_page == "IncrementDate":
-        #     endDateTime = datetime.strptime(params["endDateTime"],"'%Y-%m-%dT%H:%M:%SZ'")
-        #     self.logger.info("No next page token found, checking if {} is greater than now".format(endDateTime))
-        #     if endDateTime < datetime.now():
-        #         self.logger.info("{} is less than now, incrementing date by 1 and continuing".format(endDateTime))
-        #         nextStartDate = endDateTime + timedelta(seconds=1)
-        #         nextEndDate = endDateTime + timedelta(days=1)
-        #         params.update({"startDateTime": nextStartDate.strftime("'%Y-%m-%dT%H:%M:%SZ'")})
-        #         params.update({"endDateTime": nextEndDate.strftime("'%Y-%m-%dT%H:%M:%SZ'")})
-        #     return params
+        if next_page == "IncrementDate":
+            endDateTime = datetime.strptime(params["endDateTime"],"'%Y-%m-%dT%H:%M:%SZ'")
+            self.logger.info("No next page token found, checking if {} is greater than now".format(endDateTime))
+            if endDateTime < datetime.now():
+                self.logger.info("{} is less than now, incrementing date by 1 and continuing".format(endDateTime))
+                nextStartDate = endDateTime + timedelta(seconds=1)
+                nextEndDate = endDateTime + timedelta(days=1)
+                params.update({"startDateTime": nextStartDate.strftime("'%Y-%m-%dT%H:%M:%SZ'")})
+                params.update({"endDateTime": nextEndDate.strftime("'%Y-%m-%dT%H:%M:%SZ'")})
+            return params
         self.logger.info("Next page token found, removing startDateTime and endDateTime params")
         params.pop("startDateTime")
         params.pop("endDateTime")
@@ -101,20 +110,37 @@ class TapPowerBIMetadataStream(RESTStream):
         for row in resp_json.get("activityEventEntities"):
             yield row
 
-    def request_records(self, partition: Optional[dict]) -> Iterable[dict]:
-        """Request records from REST endpoint(s), returning an iterable Dict of response records.
+    # Hack until core.py in SDK is updated
+    
+    def get_starting_datetime(self, partition: Optional[dict]) -> Optional[datetime]:
+        import pendulum
+        result: Optional[datetime] = None
+        if self.is_timestamp_replication_key or True:
+            state = self.get_stream_or_partition_state(partition)
+            if "replication_key_value" in state:
+                result = pendulum.parse(state["replication_key_value"])
+        if result is None and "start_date" in self.config:
+            result = pendulum.parse(self.config.get("start_date"))
+        return result
 
-        If pagination can be detected, pages will be recursed automatically.
-        """
-        next_page_token = 1
-        while next_page_token:
-            self.logger.info(partition)
-            self.logger.info(self.get_starting_datetime(partition))
-            prepared_request = self.prepare_request(partition, next_page_token=next_page_token)
-            resp = self._request_with_backoff(prepared_request)
-            for row in self.parse_response(resp):
-                yield row
-            next_page_token = self.get_next_page_token(resp)
+    
+    
+    
+    
+    # def request_records(self, partition: Optional[dict]) -> Iterable[dict]:
+    #     """Request records from REST endpoint(s), returning an iterable Dict of response records.
+
+    #     If pagination can be detected, pages will be recursed automatically.
+    #     """
+    #     next_page_token = 1
+    #     while next_page_token:
+    #         self.logger.info(partition)
+    #         self.logger.info(self.get_starting_datetime(partition))
+    #         prepared_request = self.prepare_request(partition, next_page_token=next_page_token)
+    #         resp = self._request_with_backoff(prepared_request)
+    #         for row in self.parse_response(resp):
+    #             yield row
+    #         next_page_token = self.get_next_page_token(resp)
 
 
 class ActivityEventsStream(TapPowerBIMetadataStream):
