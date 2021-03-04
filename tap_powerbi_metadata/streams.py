@@ -65,10 +65,14 @@ class TapPowerBIMetadataStream(RESTStream):
     def get_next_page_token(self, response: requests.Response) -> Optional[Any]:
         """Return token for identifying next page or None if not applicable."""
         #TODO Continuation Token not properly parsed (https://github.com/dataops-tk/tap-powerbi-metadata/issues/4)
-        #resp_json = response.json()
-        #self.logger.info(resp_json.get("continuationUri"))
-        #return resp_json.get("continuationToken")
-        return None
+        resp_json = response.json()
+        continuationUri = resp_json.get("continuationUri")
+        if (continuationUri):
+            next_page_token = requests.utils.unquote(resp_json.get("continuationToken"))
+            self.logger.info("Next page token: {}".format(next_page_token))
+        else:
+            next_page_token = None
+        return next_page_token
 
     def insert_next_page_token(self, next_page: Any, params: dict) -> Any:
         """Inject next page token into http request params."""
@@ -125,12 +129,12 @@ class ActivityEventsStream(TapPowerBIMetadataStream):
         StringType("DataflowId"),
         StringType("DataflowName"),
         StringType("DataflowType"),
-        # ComplexType("DataflowAccessTokenRequestParameters",
-        #     IntegerType("tokenLifetimeInMinutes"),
-        #     IntegerType("permissions"),
-        #     StringType("entityName"),
-        #     StringType("partitionUri")
-        # ),
+        ComplexType("DataflowAccessTokenRequestParameters",
+            IntegerType("tokenLifetimeInMinutes"),
+            IntegerType("permissions"),
+            StringType("entityName"),
+            StringType("partitionUri")
+        ),
         StringType("CustomVisualAccessTokenResourceId"),
         StringType("CustomVisualAccessTokenSiteUri"),
         ComplexType("ExportedArtifactInfo",
@@ -140,12 +144,12 @@ class ActivityEventsStream(TapPowerBIMetadataStream):
         ),
         StringType("DataConnectivityMode"),
         StringType("LastRefreshTime"),
-        # ComplexType("Schedules",
-        #      StringType("RefreshFrequency"),
-        #      StringType("TimeZone"),
-        #      ArrayType("Days", StringType),
-        #      ArrayType("Time", StringType)
-        # ),
+        ComplexType("Schedules",
+             StringType("RefreshFrequency"),
+             StringType("TimeZone"),
+             ArrayType("Days", StringType),
+             ArrayType("Time", StringType)
+        ),
         StringType("ImportId"),
         StringType("ImportType"),
         StringType("ImportSource"),
@@ -153,14 +157,36 @@ class ActivityEventsStream(TapPowerBIMetadataStream):
         StringType("RefreshType"),
         StringType("DashboardId"),
         StringType("DashboardName"),
+        # StringType("Datasets"),
         # ArrayType("Datasets",ComplexType(
         #      StringType("DatasetId"),
         #      StringType("DatasetName")
         #     )
         # ),
         ArrayType("ModelsSnapshots",IntegerType),
-        # ComplexType("OrgAppPermission",
-        #     StringType("recipients"),
-        #     StringType("permissions")
-        # )
+        ComplexType("OrgAppPermission",
+            StringType("recipients"),
+            StringType("permissions")
+        ),
+        ComplexType("GenerateScreenshotInformation",
+            IntegerType("ExportType"),
+            IntegerType("ScreenshotEngineType"),
+            StringType("ExportFormat"),
+            StringType("ExportUrl")
+        ),
+        # StringType("SharingAction"),
+        # StringType("SharingInformation"),
+        # ArrayType("Datasets",ComplexType(
+        #      StringType("RecipientEmail"),
+        #      StringType("ResharePermission")
+        #     )
+        # ),
+        StringType("ArtifactId"),
+        StringType("ArtifactName"),
+        StringType("FolderObjectId"),
+        StringType("FolderDisplayName")
+        #,
+        #ExportEventStartDateTimeParameter
+        #ExportEventEndDateTimeParameter
+        #ExportEventActivityTypeParameter
     ).to_dict()
