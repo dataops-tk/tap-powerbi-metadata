@@ -1,7 +1,7 @@
 """Stream class for tap-powerbi-metadata."""
 
 from copy import deepcopy
-from datetime import timedelta
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Dict, Iterable, Optional
 import requests
@@ -13,11 +13,12 @@ from singer_sdk.authenticators import APIAuthenticatorBase, SimpleAuthenticator,
 from singer_sdk.helpers.typing import (
     ArrayType,
     BooleanType,
-    ComplexType,
     DateTimeType,
     IntegerType,
     NumberType,
+    ObjectType,
     PropertiesList,
+    Property,
     StringType,
 )
 
@@ -48,8 +49,7 @@ class TapPowerBIMetadataStream(RESTStream):
         starting_datetime = self.get_starting_datetime(partition)
         if starting_datetime:
             params.update({"startDateTime": starting_datetime.strftime("'%Y-%m-%dT%H:%M:%SZ'")})
-            #TODO need to loop over multiple days until done (https://github.com/dataops-tk/tap-powerbi-metadata/issues/5)
-            ending_datetime = starting_datetime + timedelta(hours=9)
+            ending_datetime = starting_datetime.replace(hour=0, minute=0, second=0) + timedelta(days=1) + timedelta(seconds=-1)
             params.update({"endDateTime": ending_datetime.strftime("'%Y-%m-%dT%H:%M:%SZ'")})
         self.logger.info(params)
         return params
@@ -64,20 +64,32 @@ class TapPowerBIMetadataStream(RESTStream):
 
     def get_next_page_token(self, response: requests.Response) -> Optional[Any]:
         """Return token for identifying next page or None if not applicable."""
-        #TODO Continuation Token not properly parsed (https://github.com/dataops-tk/tap-powerbi-metadata/issues/4)
+        self.logger.info(response)
         resp_json = response.json()
-        continuationUri = resp_json.get("continuationUri")
-        if (continuationUri):
-            next_page_token = requests.utils.unquote(resp_json.get("continuationToken"))
+        #continuationUri = resp_json.get("continuationUri")
+        continuationToken = resp_json.get("continuationToken")
+        if (continuationToken):
+            next_page_token = requests.utils.unquote(continuationToken)
             self.logger.info("Next page token: {}".format(next_page_token))
         else:
-            next_page_token = None
+            next_page_token = "IncrementDate"
         return next_page_token
 
     def insert_next_page_token(self, next_page: Any, params: dict) -> Any:
         """Inject next page token into http request params."""
         if (not next_page) or next_page == 1:
             return params
+        # if next_page == "IncrementDate":
+        #     endDateTime = datetime.strptime(params["endDateTime"],"'%Y-%m-%dT%H:%M:%SZ'")
+        #     self.logger.info("No next page token found, checking if {} is greater than now".format(endDateTime))
+        #     if endDateTime < datetime.now():
+        #         self.logger.info("{} is less than now, incrementing date by 1 and continuing".format(endDateTime))
+        #         nextStartDate = endDateTime + timedelta(seconds=1)
+        #         nextEndDate = endDateTime + timedelta(days=1)
+        #         params.update({"startDateTime": nextStartDate.strftime("'%Y-%m-%dT%H:%M:%SZ'")})
+        #         params.update({"endDateTime": nextEndDate.strftime("'%Y-%m-%dT%H:%M:%SZ'")})
+        #     return params
+        self.logger.info("Next page token found, removing startDateTime and endDateTime params")
         params.pop("startDateTime")
         params.pop("endDateTime")
         params["continuationToken"] = "'" + next_page + "'"
@@ -89,6 +101,21 @@ class TapPowerBIMetadataStream(RESTStream):
         for row in resp_json.get("activityEventEntities"):
             yield row
 
+    def request_records(self, partition: Optional[dict]) -> Iterable[dict]:
+        """Request records from REST endpoint(s), returning an iterable Dict of response records.
+
+        If pagination can be detected, pages will be recursed automatically.
+        """
+        next_page_token = 1
+        while next_page_token:
+            self.logger.info(partition)
+            self.logger.info(self.get_starting_datetime(partition))
+            prepared_request = self.prepare_request(partition, next_page_token=next_page_token)
+            resp = self._request_with_backoff(prepared_request)
+            for row in self.parse_response(resp):
+                yield row
+            next_page_token = self.get_next_page_token(resp)
+
 
 class ActivityEventsStream(TapPowerBIMetadataStream):
     name = "ActivityEvents"
@@ -96,97 +123,137 @@ class ActivityEventsStream(TapPowerBIMetadataStream):
     primary_keys = ["Id"]
     replication_key = "CreationTime"
     schema = PropertiesList(
-        StringType("Id", required=True),
-        IntegerType("RecordType"),
-        DateTimeType("CreationTime", required=True),
-        StringType("Operation"),
-        StringType("OrganizationId"),
-        IntegerType("UserType"),
-        StringType("UserKey"),
-        StringType("Workload"),
-        StringType("UserId"),
-        StringType("ClientIP"),
-        StringType("UserAgent"),
-        StringType("Activity"),
-        StringType("ItemName"),
-        StringType("CapacityId"),
-        StringType("CapacityName"),
-        StringType("WorkspaceId"),
-        StringType("WorkSpaceName"),
-        StringType("DatasetId"),
-        StringType("DatasetName"),
-        StringType("ReportId"),
-        StringType("ReportName"),
-        StringType("ObjectId"),
-        BooleanType("IsSuccess"),
-        StringType("ReportType"),
-        StringType("RequestId"),
-        StringType("ActivityId"),
-        StringType("AppName"),
-        StringType("AppReportId"),
-        StringType("DistributionMethod"),
-        StringType("ConsumptionMethod"),
-        StringType("DataflowId"),
-        StringType("DataflowName"),
-        StringType("DataflowType"),
-        ComplexType("DataflowAccessTokenRequestParameters",
-            IntegerType("tokenLifetimeInMinutes"),
-            IntegerType("permissions"),
-            StringType("entityName"),
-            StringType("partitionUri")
+        Property("Id", StringType, required=True),
+        Property("RecordType", IntegerType),
+        Property("CreationTime", DateTimeType, required=True),
+        Property("Operation", StringType),
+        Property("OrganizationId", StringType),
+        Property("UserType", IntegerType),
+        Property("UserKey", StringType),
+        Property("Workload", StringType),
+        Property("UserId", StringType),
+        Property("ClientIP", StringType),
+        Property("UserAgent", StringType),
+        Property("Activity", StringType),
+        Property("ItemName", StringType),
+        Property("CapacityId", StringType),
+        Property("CapacityName", StringType),
+        Property("WorkspaceId", StringType),
+        Property("WorkSpaceName", StringType),
+        Property("DatasetId", StringType),
+        Property("DatasetName", StringType),
+        #GatewayId
+        #DatasourceId
+        Property("ReportId", StringType),
+        Property("ReportName", StringType),
+        Property("ObjectId", StringType),
+        Property("IsSuccess", BooleanType),
+        Property("ReportType", StringType),
+        Property("RequestId", StringType),
+        Property("ActivityId", StringType),
+        Property("AppName", StringType),
+        Property("AppReportId", StringType),
+        Property("DistributionMethod", StringType),
+        Property("ConsumptionMethod", StringType),
+        Property("DataflowId", StringType),
+        Property("DataflowName", StringType),
+        Property("DataflowType", StringType),
+        Property(
+            "DataflowAccessTokenRequestParameters",
+            ObjectType(
+                Property("tokenLifetimeInMinutes", IntegerType),
+                Property("permissions", IntegerType),
+                Property("entityName", StringType),
+                Property("partitionUri", StringType)
+            )
+        )        ,
+        Property("CustomVisualAccessTokenResourceId", StringType),
+        Property("CustomVisualAccessTokenSiteUri", StringType),
+        Property(
+            "ExportedArtifactInfo",
+            ObjectType(
+                Property("ExportType", StringType),
+                Property("ArtifactType", StringType),
+                Property("ArtifactId", IntegerType)
+            )
         ),
-        StringType("CustomVisualAccessTokenResourceId"),
-        StringType("CustomVisualAccessTokenSiteUri"),
-        ComplexType("ExportedArtifactInfo",
-            StringType("ExportType"),
-            StringType("ArtifactType"),
-            IntegerType("ArtifactId")
+        Property("DataConnectivityMode", StringType),
+        Property("LastRefreshTime", StringType),
+        Property(
+            "Schedules",
+            ObjectType(
+                Property("RefreshFrequency", StringType),
+                Property("TimeZone", StringType),
+                Property("Days", ArrayType(StringType)),
+                Property("Time", ArrayType(StringType))
+            )
         ),
-        StringType("DataConnectivityMode"),
-        StringType("LastRefreshTime"),
-        ComplexType("Schedules",
-             StringType("RefreshFrequency"),
-             StringType("TimeZone"),
-             ArrayType("Days", StringType),
-             ArrayType("Time", StringType)
+        Property("ImportId", StringType),
+        Property("ImportType", StringType),
+        Property("ImportSource", StringType),
+        Property("ImportDisplayName", StringType),
+        Property("RefreshType", StringType),
+        Property("DashboardId", StringType),
+        Property("DashboardName", StringType),
+        Property(
+            "Datasets",
+            ArrayType(
+                ObjectType(
+                    Property("DatasetId", StringType),
+                    Property("DatasetName", StringType)
+                )
+            )
         ),
-        StringType("ImportId"),
-        StringType("ImportType"),
-        StringType("ImportSource"),
-        StringType("ImportDisplayName"),
-        StringType("RefreshType"),
-        StringType("DashboardId"),
-        StringType("DashboardName"),
-        # StringType("Datasets"),
-        # ArrayType("Datasets",ComplexType(
-        #      StringType("DatasetId"),
-        #      StringType("DatasetName")
-        #     )
-        # ),
-        ArrayType("ModelsSnapshots",IntegerType),
-        ComplexType("OrgAppPermission",
-            StringType("recipients"),
-            StringType("permissions")
+        Property("ModelsSnapshots", ArrayType(IntegerType)),
+        Property(
+            "OrgAppPermission",
+            ObjectType(
+                Property("recipients", StringType),
+                Property("permissions", StringType)
+            )
         ),
-        ComplexType("GenerateScreenshotInformation",
-            IntegerType("ExportType"),
-            IntegerType("ScreenshotEngineType"),
-            StringType("ExportFormat"),
-            StringType("ExportUrl")
+        Property(
+            "GenerateScreenshotInformation",
+            ObjectType(
+                Property("ExportType", IntegerType),
+                Property("ScreenshotEngineType", IntegerType),
+                Property("ExportFormat", StringType),
+                Property("ExportUrl", StringType)
+            )
         ),
-        # StringType("SharingAction"),
-        # StringType("SharingInformation"),
-        # ArrayType("Datasets",ComplexType(
-        #      StringType("RecipientEmail"),
-        #      StringType("ResharePermission")
-        #     )
-        # ),
-        StringType("ArtifactId"),
-        StringType("ArtifactName"),
-        StringType("FolderObjectId"),
-        StringType("FolderDisplayName")
-        #,
-        #ExportEventStartDateTimeParameter
-        #ExportEventEndDateTimeParameter
-        #ExportEventActivityTypeParameter
+        Property("SharingAction", StringType),
+        Property(
+            "SharingInformation",
+            ArrayType(
+                ObjectType(
+                    Property("RecipientEmail", StringType),
+                    Property("ResharePermission", StringType)
+                )
+            )
+        ),
+        Property("ArtifactId", StringType),
+        Property("ArtifactName", StringType),
+        Property("FolderObjectId", StringType),
+        Property("FolderDisplayName", StringType),
+        #FolderAccessRequests
+        Property("ExportEventStartDateTimeParameter", StringType),
+        Property("ExportEventEndDateTimeParameter", StringType),
+        Property("ExportEventActivityTypeParameter", StringType)
+        # CapacityUsers
+        # CapacityState
+        # DeploymentPipelineId
+        # DeploymentPipelineObjectId
+        # DeploymentPipelineDisplayName
+        # DeploymentPipelineStageOrder
+        # DeploymentPipelineAccesses
+        # TileText
+        # TableName
+        # TemplateAppObjectId
+        # TemplatePackageName
+        # TemplateAppVersion
+        # TemplateAppOwnerTenantObjectId
+        # TemplateAppFolderObjectId
+        # TemplateAppIsInstalledWithAutomation
+        # IsTemplateAppFromMarketplace
+        # IsUpdateAppActivity
     ).to_dict()
