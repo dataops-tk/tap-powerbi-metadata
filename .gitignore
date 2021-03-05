@@ -1,3 +1,14 @@
+# Hide data output
+*.csv
+*.jsonl
+
+# Hide secrets and internal config files
+**/.secrets/**
+
+# Allow template files and Readme docs in secrets folders
+!**/.secrets/*.template
+!**/.secrets/README.md
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -127,3 +138,6 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# vscode
+.vscode/
