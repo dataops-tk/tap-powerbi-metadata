@@ -23,6 +23,7 @@ from singer_sdk.helpers.typing import (
     StringType,
 )
 
+API_DATE_FORMAT = "'%Y-%m-%dT%H:%M:%SZ'"
 
 class OAuthActiveDirectoryAuthenticator(OAuthAuthenticator):
     # https://pivotalbi.com/automate-your-power-bi-dataset-refresh-with-python
@@ -44,17 +45,24 @@ class TapPowerBIMetadataStream(RESTStream):
 
     url_base = "https://api.powerbi.com/v1.0/myorg"
 
-    def get_url_params(self, partition: Optional[dict]) -> Dict[str, Any]:
-        """Return a dictionary of values to be used in URL parameterization."""
+    def get_url_params(self, partition: Optional[dict], next_page_token: Optional[Any] = None) -> Dict[str, Any]:
+        """Return a dictionary of values to be used in URL parameterization.
+        
+        API only supports a single UTC day, or continuationToken-based pagination.
+        """
         params = {}
-        starting_datetime = self.get_starting_datetime(partition)
-        state = self.get_stream_or_partition_state(None)
-        self.logger.info("state:" + str(state))
-        state["latestUrlStartDate"] = starting_datetime
-        if starting_datetime:
-            params.update({"startDateTime": starting_datetime.strftime("'%Y-%m-%dT%H:%M:%SZ'")})
-            ending_datetime = starting_datetime.replace(hour=0, minute=0, second=0) + timedelta(days=1) + timedelta(seconds=-1)
-            params.update({"endDateTime": ending_datetime.strftime("'%Y-%m-%dT%H:%M:%SZ'")})
+        if next_page_token:
+            starting_datetime = next_page_token["urlStartDate"]
+            continuationToken = next_page_token.get("continuationToken")
+        else:
+            starting_datetime = self.get_starting_datetime(partition)
+            continuationToken = None
+        if continuationToken:
+            params["continuationToken"] = "'" + continuationToken + "'"
+        else:
+            params.update({"startDateTime": starting_datetime.strftime(API_DATE_FORMAT)})
+            ending_datetime = starting_datetime.replace(hour=0, minute=0, second=0) + timedelta(days=1) + timedelta(microseconds=-1)
+            params.update({"endDateTime": ending_datetime.strftime(API_DATE_FORMAT)})
         self.logger.info(params)
         return params
 
@@ -66,43 +74,36 @@ class TapPowerBIMetadataStream(RESTStream):
             oauth_scopes="https://analysis.windows.net/powerbi/api",
         )
 
-    def get_next_page_token(self, response: requests.Response) -> Optional[Any]:
+    def get_next_page_token(self, response: requests.Response, previous_token: Optional[Any] = None) -> Optional[Any]:
         """Return token for identifying next page or None if not applicable."""
-        req_url = response.request.url
-        req_params = parse.parse_qs(parse.urlparse(req_url).query)
-        self.logger.info(req_params)
         resp_json = response.json()
-        #self.logger.info(resp_json)
-        #continuationUri = resp_json.get("continuationUri")
         continuationToken = resp_json.get("continuationToken")
-        if (continuationToken):
-            next_page_token = requests.utils.unquote(continuationToken)
-            self.logger.info("Next page token: {}".format(next_page_token))
+        next_page_token = {}
+        if not previous_token:
+            # First time creating a pagination token so we need to record the initial start date.
+            req_url = response.request.url
+            req_params = parse.parse_qs(parse.urlparse(req_url).query)
+            self.logger.info("Params: {}".format(req_params))
+            latest_url_start_date_param = req_params["startDateTime"][0]
+            next_page_token["urlStartDate"] = datetime.strptime(latest_url_start_date_param, API_DATE_FORMAT)
+        else: 
+            next_page_token["urlStartDate"] = previous_token.get("urlStartDate")
+        if continuationToken:
+            next_page_token["continuationToken"] = requests.utils.unquote(continuationToken)
         else:
-            next_page_token = "IncrementDate"
-        state = self.get_stream_or_partition_state(None)
-        self.logger.info("state:" + str(state))
+            next_page_token["continuationToken"] = None
+            # Now check if we should repeat API call for next day
+            latestUrlStartDate = next_page_token["urlStartDate"]
+            nextUrlStartDate = latestUrlStartDate.replace(hour=0, minute=0, second=0) + timedelta(days=1)
+            self.logger.info("No next page token found, checking if {} is greater than now".format(nextUrlStartDate))
+            if nextUrlStartDate < datetime.utcnow():
+                self.logger.info("{} is less than now, incrementing date by 1 and continuing".format(nextUrlStartDate))
+                next_page_token["urlStartDate"] = nextUrlStartDate
+                self.logger.info(next_page_token)
+            else:
+                self.logger.info("No continuationToken, and nextUrlStartDate after today, calling it quits")
+                return None
         return next_page_token
-
-    def insert_next_page_token(self, next_page: Any, params: dict) -> Any:
-        """Inject next page token into http request params."""
-        if (not next_page) or next_page == 1:
-            return params
-        if next_page == "IncrementDate":
-            endDateTime = datetime.strptime(params["endDateTime"],"'%Y-%m-%dT%H:%M:%SZ'")
-            self.logger.info("No next page token found, checking if {} is greater than now".format(endDateTime))
-            if endDateTime < datetime.now():
-                self.logger.info("{} is less than now, incrementing date by 1 and continuing".format(endDateTime))
-                nextStartDate = endDateTime + timedelta(seconds=1)
-                nextEndDate = endDateTime + timedelta(days=1)
-                params.update({"startDateTime": nextStartDate.strftime("'%Y-%m-%dT%H:%M:%SZ'")})
-                params.update({"endDateTime": nextEndDate.strftime("'%Y-%m-%dT%H:%M:%SZ'")})
-            return params
-        self.logger.info("Next page token found, removing startDateTime and endDateTime params")
-        params.pop("startDateTime")
-        params.pop("endDateTime")
-        params["continuationToken"] = "'" + next_page + "'"
-        return params
 
     def parse_response(self, response: requests.Response) -> Iterable[dict]:
         """Parse the response and return an iterator of result rows."""
