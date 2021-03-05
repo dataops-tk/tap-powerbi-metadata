@@ -111,38 +111,6 @@ class TapPowerBIMetadataStream(RESTStream):
         for row in resp_json.get("activityEventEntities"):
             yield row
 
-    # Hack until core.py in SDK is updated
-    
-    def get_starting_datetime(self, partition: Optional[dict]) -> Optional[datetime]:
-        import pendulum
-        result: Optional[datetime] = None
-        if self.is_timestamp_replication_key or True:
-            state = self.get_stream_or_partition_state(partition)
-            if "replication_key_value" in state:
-                result = pendulum.parse(state["replication_key_value"])
-        if result is None and "start_date" in self.config:
-            result = pendulum.parse(self.config.get("start_date"))
-        return result
-
-    
-    
-    
-    
-    # def request_records(self, partition: Optional[dict]) -> Iterable[dict]:
-    #     """Request records from REST endpoint(s), returning an iterable Dict of response records.
-
-    #     If pagination can be detected, pages will be recursed automatically.
-    #     """
-    #     next_page_token = 1
-    #     while next_page_token:
-    #         self.logger.info(partition)
-    #         self.logger.info(self.get_starting_datetime(partition))
-    #         prepared_request = self.prepare_request(partition, next_page_token=next_page_token)
-    #         resp = self._request_with_backoff(prepared_request)
-    #         for row in self.parse_response(resp):
-    #             yield row
-    #         next_page_token = self.get_next_page_token(resp)
-
 
 class ActivityEventsStream(TapPowerBIMetadataStream):
     name = "ActivityEvents"
