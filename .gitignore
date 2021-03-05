@@ -1,3 +1,7 @@
+# Hide data output
+*.csv
+*.jsonl
+
 # Hide secrets and internal config files
 **/.secrets/**
 
@@ -134,3 +138,6 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# vscode
+.vscode/
