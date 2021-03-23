@@ -5,13 +5,9 @@ from typing import List
 import click
 from singer_sdk import Tap, Stream
 from singer_sdk.helpers.typing import (
-    ArrayType,
-    BooleanType,
-    ComplexType,
     DateTimeType,
-    IntegerType,
-    NumberType,
     PropertiesList,
+    Property,
     StringType,
 )
 
@@ -31,11 +27,11 @@ class TapPowerBIMetadata(Tap):
 
     name = "tap-powerbi-metadata"
     config_jsonschema = PropertiesList(
-        StringType("tenant_id", required=True),
-        StringType("client_id", required=True),
-        StringType("username", required=True),
-        StringType("password", required=True),
-        DateTimeType("start_date"),
+        Property("tenant_id", StringType, required=True),
+        Property("client_id", StringType, required=True),
+        Property("username", StringType, required=True),
+        Property("password", StringType, required=True),
+        Property("start_date", DateTimeType)
     ).to_dict()
 
     def discover_streams(self) -> List[Stream]:
