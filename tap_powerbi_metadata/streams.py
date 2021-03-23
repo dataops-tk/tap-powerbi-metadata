@@ -63,7 +63,7 @@ class TapPowerBIMetadataStream(RESTStream):
             params.update({"startDateTime": starting_datetime.strftime(API_DATE_FORMAT)})
             ending_datetime = starting_datetime.replace(hour=0, minute=0, second=0) + timedelta(days=1) + timedelta(microseconds=-1)
             params.update({"endDateTime": ending_datetime.strftime(API_DATE_FORMAT)})
-        self.logger.info(params)
+        self.logger.debug(params)
         return params
 
     @property
@@ -83,7 +83,7 @@ class TapPowerBIMetadataStream(RESTStream):
             # First time creating a pagination token so we need to record the initial start date.
             req_url = response.request.url
             req_params = parse.parse_qs(parse.urlparse(req_url).query)
-            self.logger.info("Params: {}".format(req_params))
+            self.logger.debug("Params: {}".format(req_params))
             latest_url_start_date_param = req_params["startDateTime"][0]
             next_page_token["urlStartDate"] = datetime.strptime(latest_url_start_date_param, API_DATE_FORMAT)
         else: 
@@ -99,7 +99,7 @@ class TapPowerBIMetadataStream(RESTStream):
             if nextUrlStartDate < datetime.utcnow():
                 self.logger.info("{} is less than now, incrementing date by 1 and continuing".format(nextUrlStartDate))
                 next_page_token["urlStartDate"] = nextUrlStartDate
-                self.logger.info(next_page_token)
+                self.logger.debug(next_page_token)
             else:
                 self.logger.info("No continuationToken, and nextUrlStartDate after today, calling it quits")
                 return None
@@ -137,8 +137,8 @@ class ActivityEventsStream(TapPowerBIMetadataStream):
         Property("WorkSpaceName", StringType),
         Property("DatasetId", StringType),
         Property("DatasetName", StringType),
-        #GatewayId
-        #DatasourceId
+        Property("GatewayId", StringType),
+        Property("DatasourceId", StringType),
         Property("ReportId", StringType),
         Property("ReportName", StringType),
         Property("ObjectId", StringType),
@@ -161,7 +161,9 @@ class ActivityEventsStream(TapPowerBIMetadataStream):
                 Property("entityName", StringType),
                 Property("partitionUri", StringType)
             )
-        )        ,
+        ),
+        Property("DataflowRefreshScheduleType", StringType),
+        Property("DataflowAllowNativeQueries", BooleanType),
         Property("CustomVisualAccessTokenResourceId", StringType),
         Property("CustomVisualAccessTokenSiteUri", StringType),
         Property(
@@ -230,25 +232,157 @@ class ActivityEventsStream(TapPowerBIMetadataStream):
         Property("ArtifactName", StringType),
         Property("FolderObjectId", StringType),
         Property("FolderDisplayName", StringType),
-        #FolderAccessRequests
-        Property("ExportEventStartDateTimeParameter", StringType),
-        Property("ExportEventEndDateTimeParameter", StringType),
-        Property("ExportEventActivityTypeParameter", StringType)
-        # CapacityUsers
-        # CapacityState
-        # DeploymentPipelineId
-        # DeploymentPipelineObjectId
-        # DeploymentPipelineDisplayName
-        # DeploymentPipelineStageOrder
-        # DeploymentPipelineAccesses
-        # TileText
-        # TableName
-        # TemplateAppObjectId
-        # TemplatePackageName
-        # TemplateAppVersion
-        # TemplateAppOwnerTenantObjectId
-        # TemplateAppFolderObjectId
-        # TemplateAppIsInstalledWithAutomation
-        # IsTemplateAppFromMarketplace
-        # IsUpdateAppActivity
+        Property(
+            "FolderAccessRequests",
+            ArrayType(
+                ObjectType(
+                    Property("RolePermissions", StringType),
+                    Property("UserObjectId", StringType)
+                )
+            )
+        ),
+        Property("ExportEventStartDateTimeParameter", DateTimeType),
+        Property("ExportEventEndDateTimeParameter", DateTimeType),
+        Property("ExportEventActivityTypeParameter", StringType),
+        Property("CapacityUsers", StringType),
+        Property("CapacityState", StringType),
+        Property("DatasetCertificationStage", StringType),
+        Property("ReportCertificationStage", StringType),
+        Property("DeploymentPipelineId", IntegerType),
+        Property("DeploymentPipelineObjectId", StringType),
+        Property("DeploymentPipelineDisplayName", StringType),
+        Property("DeploymentPipelineStageOrder", IntegerType),
+        Property(
+            "DeploymentPipelineAccesses",
+            ArrayType(
+                ObjectType(
+                    Property("RolePermissions", StringType),
+                    Property("UserObjectId", StringType)
+                )
+            )
+        ),
+        Property("TileText", StringType),
+        Property("TableName", StringType),
+        Property("TemplateAppObjectId", StringType),
+        Property("TemplatePackageName", StringType),
+        Property("TemplateAppVersion", StringType),
+        Property("TemplateAppOwnerTenantObjectId", StringType),
+        Property("TemplateAppFolderObjectId", StringType),
+        Property("TemplateAppIsInstalledWithAutomation", BooleanType),
+        Property("IsTemplateAppFromMarketplace", BooleanType),
+        Property("IsUpdateAppActivity", BooleanType),
+        Property("SwitchState", StringType),
+        Property(
+            "SubscribeeInformation",
+            ArrayType(
+                ObjectType(
+                    Property("RecipientEmail", StringType),
+                    Property("RecipientName", StringType),
+                    Property("ObjectId", StringType)
+                )
+            )
+        ),
+        # ExternalSubscribeeInformation has only ever shown as    "ExternalSubscribeeInformation": []
+        # Don't know proper 
+        #Property("ExternalSubscribeeInformation", StringType),
+        #Property(
+        #    "ExternalSubscribeeInformation",
+        #    ArrayType(
+        #        StringType()
+        #    )
+        #),
+        Property(
+            "SubscriptionSchedule",
+            ObjectType(
+                Property("Type", StringType),
+                Property(
+                    "WeekDays",
+                    ArrayType(StringType)
+                ),
+                Property("StartDate", DateTimeType),
+                Property("EndDate", DateTimeType),
+                Property("TimeZone", StringType),
+                Property(
+                    "Time",
+                    ArrayType(StringType)
+                ),
+            )
+        ),
+        Property(
+            "UserInformation",
+            ObjectType(
+                Property(
+                    "UsersAdded",
+                    ArrayType(StringType)
+                ),
+                Property(
+                    "UsersRemoved",
+                    ArrayType(StringType)
+                )
+            )
+        ),
+        Property(
+            "AggregatedWorkspaceInformation",
+            ObjectType(
+                Property("WorkspaceCount", IntegerType),
+                Property("WorkspacesByCapacitySku", StringType),
+                Property("WorkspacesByType", StringType)
+            )
+        ),        
+        Property("GatewayType", StringType),
+        Property("DatasourceType", StringType),
+        Property("AuditedArtifactInformation",
+            ObjectType(
+                Property("Id", StringType),
+                Property("Name", StringType),
+                Property("ArtifactObjectId", StringType),
+                Property("AnnotatedItemType", StringType)
+            )
+        ),
+        Property("GatewayClusterId", StringType),
+        Property(
+            "GatewayClusters",
+            ArrayType(
+                ObjectType(
+                    Property("id", StringType),
+                    Property(
+                        "permissions",
+                        ArrayType(
+                            ObjectType(
+                                Property("id", StringType),
+                                Property("principalType", StringType),
+                                Property("role", StringType),
+                                Property("allowedDataSources", ArrayType(StringType))
+                            )
+                        )
+                    ),
+                    Property("type", StringType),
+                    Property("memberGatewaysIds", ArrayType(StringType))
+                )
+            )
+        ),
+        Property("GatewayMemberId", StringType),
+        Property("IsTenantAdminApi", BooleanType),
+        Property(
+            "UpdateFeaturedTables",
+            ArrayType(
+                ObjectType(
+                    Property("TableName", StringType),
+                    Property("State", StringType)
+                )
+            )
+        ),
+        Property("TakingOverOwner", StringType),
+        Property(
+            "PaginatedReportDataSources",
+            ArrayType(
+                ObjectType(
+                    Property("connectionString", StringType),
+                    Property("credentialRetrievalType", StringType),
+                    Property("provider", StringType),
+                    Property("name", StringType),
+                    Property("dMMoniker", StringType)
+                )
+            )
+        )
     ).to_dict()
