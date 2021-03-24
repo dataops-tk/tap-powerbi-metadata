@@ -64,8 +64,9 @@ jobs:
       - name: Push to PyPi (https://pypi.org/project/tap-powerbi-metadata/)  (build number ${{ github.run_number }})
         env:
           BRANCH_NAME: ${{ github.ref }}
-          PYPI_PUBLISH_TOKEN: ${{ secrets.PYPI_PUBLISH_TOKEN }}
+          POETRY_PYPI_TOKEN_PYPI: ${{ secrets.PYPI_PUBLISH_TOKEN }}
         run: |
+          echo "Publishing to PyPi..."
           if [[ "$BRANCH_NAME" == *main ]]
           then
             poetry version --short
