@@ -36,9 +36,9 @@ jobs:
       - name: Install tap
         run: |
           poetry install
-      - name: Run tests
-        run: |
-          poetry run pytest
+      #- name: Run tests
+      #  run: |
+      #    poetry run pytest
 
   pypi_publish:
     runs-on: ubuntu-latest
