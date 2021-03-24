@@ -1,0 +1,97 @@
+name: CI/CD Builds
+
+on:
+  push:
+    branches:
+      - "**"
+    paths-ignore:
+      - docs/**.md
+
+jobs:
+  python_build_and_test:
+    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 4
+      matrix:
+        python-version:
+          - 3.8
+    steps:
+      - name: Clone git repo
+        uses: actions/checkout@v1
+      - name: "Print Version Info (build number ${{ github.run_number }})"
+        run: |
+          echo "Build Number: $GITHUB_RUN_NUMBER"
+          echo "Version:      $(cat VERSION).$GITHUB_RUN_NUMBER"
+          echo "Run ID:       ${{ github.run_id }}"
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v1
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install pipx and poetry
+        run: |
+          python3 -m pip install pipx
+          python3 -m pipx ensurepath
+          pipx install poetry
+      - name: Install tap
+        run: |
+          poetry install
+      #- name: Run tests
+      #  run: |
+      #    poetry run pytest
+
+  pypi_publish:
+    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 4
+      matrix:
+        python-version:
+          - 3.7
+    needs:
+      - python_build_and_test
+    steps:
+      - name: Clone git repo
+        uses: actions/checkout@v1
+      - name: Set up Python (v${{ matrix.python-version }})
+        uses: actions/setup-python@v1
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install pipx and poetry
+        run: |
+          python3 -m pip install pipx
+          python3 -m pipx ensurepath
+          pipx install poetry
+      - name: Push to PyPi (https://pypi.org/project/tap-powerbi-metadata/)  (build number ${{ github.run_number }})
+        env:
+          BRANCH_NAME: ${{ github.ref }}
+          POETRY_PYPI_TOKEN_PYPI: ${{ secrets.PYPI_PUBLISH_TOKEN }}
+        run: |
+          echo "Publishing to PyPi..."
+          if [[ "$BRANCH_NAME" == *main ]]
+          then
+            poetry version --short
+          else
+            poetry version $(poetry version --short)-dev.$GITHUB_RUN_NUMBER
+            poetry version --short
+          fi
+          echo -e "\nPublishing to version ref '$(poetry version --short)'...\n\n"
+          poetry publish --build
+      - name: Wait up to 3 minutes for PyPi availability
+        run: |
+          pwd
+          ls -la
+          export VER=$(cat VERSION)
+          export PIPERR=$(pip install tapdance==$VER 2>&1)
+          echo "Checking for PyPi availability of version $VER"
+          if [[ $PIPERR == *"$VER"* ]]; then { echo "Yes"; } else { echo "Not yet found..."; sleep 30; } fi;
+          export PIPERR=$(pip install tapdance==$VER 2>&1)
+          if [[ $PIPERR == *"$VER"* ]]; then { echo "Yes"; } else { echo "Not yet found..."; sleep 30; } fi;
+          export PIPERR=$(pip install tapdance==$VER 2>&1)
+          if [[ $PIPERR == *"$VER"* ]]; then { echo "Yes"; } else { echo "Not yet found..."; sleep 30; } fi;
+          export PIPERR=$(pip install tapdance==$VER 2>&1)
+          if [[ $PIPERR == *"$VER"* ]]; then { echo "Yes"; } else { echo "Not yet found..."; sleep 30; } fi;
+          export PIPERR=$(pip install tapdance==$VER 2>&1)
+          if [[ $PIPERR == *"$VER"* ]]; then { echo "Yes"; } else { echo "Not yet found..."; sleep 30; } fi;
+          export PIPERR=$(pip install tapdance==$VER 2>&1)
+          if [[ $PIPERR == *"$VER"* ]]; then { echo "Yes"; } else { echo "Not yet found..."; sleep 30; } fi;
+          export PIPERR=$(pip install tapdance==$VER 2>&1)
+          if [[ $PIPERR == *"$VER"* ]]; then { echo "Yes"; } else { echo "Not found. Giving up. Last message from PyPi was $PIPERR"; exit 1; } fi;
