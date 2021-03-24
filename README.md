@@ -27,6 +27,10 @@ This Singer-compliant tap was created using the [Singer SDK](https://gitlab.com/
 
     ```bash
     poetry run tap-powerbi-metadata --help
+
+    poetry run tap-powerbi-metadata --config=.secrets\config.json > Activity.jsonl
+    cat Activity.jsonl | target-csv
+    cat Activity.jsonl | target-snowflake --config=.secrets/target-config.json
     ```
 
 - [ ] Create some tests and then run:
@@ -39,8 +43,15 @@ _`TODO: Remove the above section once complete.`_
 
 ## Singer SDK Dev Guide
 
-See the [dev guide](../../docs/dev_guide.md) for more instructions on how to use the Singer SDK to 
-develop your own taps and targets.
+See the [dev guide](../../docs/dev_guide.md) for more instructions on how to use the Singer SDK to develop your own taps and targets.
+
+To upgrade the version of singer-sdk being used, go to the [Release History tab on the pypi repo for singer-sdk](https://pypi.org/project/singer-sdk/#history) and copy the version number only
+
+Then in the command prompt, while in the repo run the following, after replacing the version number with the one you copied
+
+```bash
+poetry add singer-sdk==0.0.2.dev1234567890
+```
 
 ## Config Guide
 
