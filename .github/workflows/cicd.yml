@@ -14,7 +14,6 @@ jobs:
       max-parallel: 4
       matrix:
         python-version:
-          # - 3.7
           - 3.8
     steps:
       - name: Clone git repo
@@ -75,7 +74,6 @@ jobs:
             poetry version --short
           fi
           echo -e "\nPublishing to version ref '$(poetry version --short)'...\n\n"
-          # poetry config pypi-token.pypi "$PYPI_PUBLISH_TOKEN"
           poetry publish --build
       - name: Wait up to 3 minutes for PyPi availability
         run: |
