@@ -2,7 +2,6 @@
 
 from pathlib import Path
 from typing import List
-import click
 from singer_sdk import Tap, Stream
 from singer_sdk.helpers.typing import (
     DateTimeType,
@@ -22,6 +21,7 @@ STREAM_TYPES = [
     ActivityEventsStream,
 ]
 
+
 class TapPowerBIMetadata(Tap):
     """PowerBIMetadata tap class."""
 
@@ -31,12 +31,13 @@ class TapPowerBIMetadata(Tap):
         Property("client_id", StringType, required=True),
         Property("username", StringType, required=True),
         Property("password", StringType, required=True),
-        Property("start_date", DateTimeType)
+        Property("start_date", DateTimeType),
     ).to_dict()
 
     def discover_streams(self) -> List[Stream]:
         """Return a list of discovered streams."""
         return [stream_class(tap=self) for stream_class in STREAM_TYPES]
+
 
 # CLI Execution:
 
