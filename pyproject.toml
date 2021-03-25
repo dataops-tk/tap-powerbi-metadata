@@ -6,11 +6,8 @@ authors = ["AJ Steers <aaaronsteers@gmail.com>", "John Timeus <john.timeus@slalo
 license = "Apache v2"
 
 [tool.poetry.dependencies]
-python = "^3.6"
-singer-python = "5.9.0"
-pytz = "2018.4"
-click = "^7.1.2"
-singer-sdk = "0.0.2.dev1074572064"
+python = ">=3.6,<3.9"
+singer-sdk = "0.0.2-dev.1125958239"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.1.2"
