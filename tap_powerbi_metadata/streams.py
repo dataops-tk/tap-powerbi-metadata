@@ -54,7 +54,7 @@ class TapPowerBIMetadataStream(RESTStream):
             starting_datetime = next_page_token["urlStartDate"]
             continuationToken = next_page_token.get("continuationToken")
         else:
-            starting_datetime = self.get_starting_datetime(partition)
+            starting_datetime = self.get_starting_timestamp(partition)
             continuationToken = None
         if continuationToken:
             params["continuationToken"] = "'" + continuationToken + "'"
