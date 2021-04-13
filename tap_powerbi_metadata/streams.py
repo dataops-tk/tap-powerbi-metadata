@@ -6,12 +6,11 @@ from pathlib import Path
 from typing import Any, Dict, Iterable, Optional
 from urllib import parse
 import requests
-from singer_sdk.helpers.util import utc_now
 
 
 from singer_sdk.streams import RESTStream
 from singer_sdk.authenticators import APIAuthenticatorBase, SimpleAuthenticator, OAuthAuthenticator, OAuthJWTAuthenticator
-from singer_sdk.helpers.typing import (
+from singer_sdk.typing import (
     ArrayType,
     BooleanType,
     DateTimeType,
@@ -55,7 +54,7 @@ class TapPowerBIMetadataStream(RESTStream):
             starting_datetime = next_page_token["urlStartDate"]
             continuationToken = next_page_token.get("continuationToken")
         else:
-            starting_datetime = self.get_starting_datetime(partition)
+            starting_datetime = self.get_starting_timestamp(partition)
             continuationToken = None
         if continuationToken:
             params["continuationToken"] = "'" + continuationToken + "'"
