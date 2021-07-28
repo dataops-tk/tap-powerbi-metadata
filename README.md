@@ -1,59 +1,16 @@
-_**NOTE:** The Singer SDK framework is still in early exploration and development phases. For more
-information and to be updated on this project, please feel free to subscribe to our
-[original Meltano thread](https://gitlab.com/meltano/meltano/-/issues/2401) and the
-[initial PR for the underlying framework](https://gitlab.com/meltano/singer-sdk/-/merge_requests/1)._
-
---------------------------------
-
 # Welcome to the tap-powerbi-metadata Singer Tap!
 
-This Singer-compliant tap was created using the [Singer SDK](https://gitlab.com/meltano/singer-sdk).
+This [Singer](https://singer.io) tap was created using the [Meletano SDK for Taps](https://sdk.meltano.com).
 
-## Getting Started
+---------------------------------
 
-`TODO: Delete this section after tap is tested and working`
-
-- [ ] As a first step, you will want to scan the entire project for the text "`TODO:`" and complete any recommended steps.
-- [ ] Once you have a boilerplate prepped, you'll want to setup Poetry and create the virtual environment for your project:
-
-    ```bash
-    pipx install poetry
-    poetry install
-    # Now navigate to your repo root and then run:
-    poetry init
-    ```
-
-- [ ] You can test out your new CLI directly with:
-
-    ```bash
-    poetry run tap-powerbi-metadata --help
-
-    poetry run tap-powerbi-metadata --config=.secrets\config.json > Activity.jsonl
-    cat Activity.jsonl | target-csv
-    cat Activity.jsonl | target-snowflake --config=.secrets/target-config.json
-    ```
-
-- [ ] Create some tests and then run:
-
-    ```bash
-    poetry run pytest
-    ```
-
-_`TODO: Remove the above section once complete.`_
-
-## Singer SDK Dev Guide
-
-See the [dev guide](../../docs/dev_guide.md) for more instructions on how to use the Singer SDK to develop your own taps and targets.
-
-To upgrade the version of singer-sdk being used, go to the [Release History tab on the pypi repo for singer-sdk](https://pypi.org/project/singer-sdk/#history) and copy the version number only
-
-Then in the command prompt, while in the repo run the following, after replacing the version number with the one you copied
+## Installation
 
 ```bash
-poetry add singer-sdk==0.0.2.dev1234567890
+pipx install git+https://github.com/dataops-tk/tap-powerbi-metadata.git
 ```
 
-## Config Guide
+## Configuration
 
 ### Accepted Config Options
 
@@ -66,6 +23,11 @@ poetry add singer-sdk==0.0.2.dev1234567890
 Note:
 
 - A sample config file is available at `.secrets/config.json.template`
+- A full list of supported settings and capabilities for this tap is available by running:
+
+    ```bash
+    tap-powerbi-metadata --about
+    ```
 
 ### Source Authentication and Authorization
 
@@ -80,3 +42,72 @@ topic on docs.microsoft.com.
   - https://docs.microsoft.com/en-us/power-bi/developer/embedded/create-an-azure-active-directory-tenant
 
 `TODO:` Test out this process of creating a new tenant and service principal for testing purposes and so users/developers won't have to run this in prod to know it works properly.
+
+
+## Usage
+
+You can easily run `tap-powerbi-metadata` by itself or in a pipeline using [Meltano](www.meltano.com).
+
+### Executing the Tap Directly
+
+```bash
+tap-powerbi-metadata --version
+tap-powerbi-metadata --help
+tap-powerbi-metadata --config CONFIG --discover > ./catalog.json
+```
+
+
+## How to Contribute
+
+See the [SDK dev guide](https://sdk.meltano.com/dev_guide.html) for more instructions on how to use the Singer SDK to develop your own taps and targets.
+
+### Upgrading the SDK Version
+
+To upgrade the version of SDK being used, go to the [Release History tab on the pypi repo for the SDK](https://pypi.org/project/singer-sdk/#history) and copy the version number only
+
+Then in the command prompt, while in the repo run the following, after replacing the version number with the one you copied
+
+```bash
+poetry add singer-sdk==0.2.0
+```
+
+### Initialize your Development Environment
+
+If you've not already installed Poetry:
+
+```bash
+pipx install poetry
+```
+
+To update your local virtual environment:
+
+```bash
+poetry install
+```
+
+### Testing locally
+
+Execute the tap locally with the `poetry run` prefix:
+
+```bash
+poetry run tap-powerbi-metadata --help
+
+poetry run tap-powerbi-metadata --config=.secrets\config.json > Activity.jsonl
+cat Activity.jsonl | target-csv
+cat Activity.jsonl | target-snowflake --config=.secrets/target-config.json
+```
+
+### Create and Run Tests
+
+Create tests within the `tap-powerbi-metadata/tests` subfolder and
+  then run:
+
+```bash
+poetry run pytest
+```
+
+You can also test the `tap-powerbi-metadata` CLI interface directly using `poetry run`:
+
+```bash
+poetry run tap-powerbi-metadata --help
+```
