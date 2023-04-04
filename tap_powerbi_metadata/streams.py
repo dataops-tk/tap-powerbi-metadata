@@ -338,7 +338,10 @@ class ActivityEventsStream(TapPowerBIMetadataStream):
             ObjectType(
                 Property("ChannelId", StringType),
                 Property("ChannelName", StringType),
+                Property("DatasetId", StringType),
+                Property("DatasetName", StringType),
                 Property("ReportId", StringType),
+                Property("ReportName", StringType),
                 Property("TabName", StringType),
                 Property("TeamId", StringType),
                 Property("TeamName", StringType),
@@ -389,6 +392,7 @@ class ActivityEventsStream(TapPowerBIMetadataStream):
         Property(
             "SubscriptionSchedule",
             ObjectType(
+                Property("DaysOfTheMonth",StringType),
                 Property("EndDate", DateTimeType),
                 Property("StartDate", DateTimeType),
                 Property(
