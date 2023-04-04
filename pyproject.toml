@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "tap-powerbi-metadata"
-version = "0.0.3"
+version = "0.0.4"
 description = "`tap-powerbi-metadata` is Singer-compliant PowerBIMetadata tap built with Singer SDK."
 authors = ["AJ Steers <aaaronsteers@gmail.com>", "John Timeus <john.timeus@slalom.com>"]
 license = "Apache v2"
