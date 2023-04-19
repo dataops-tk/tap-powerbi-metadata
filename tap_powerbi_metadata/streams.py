@@ -117,196 +117,317 @@ class ActivityEventsStream(TapPowerBIMetadataStream):
     primary_keys = ["Id"]
     replication_key = "CreationTime"
     schema = PropertiesList(
+        # Keys
         Property("Id", StringType, required=True),
-        Property("RecordType", IntegerType),
         Property("CreationTime", DateTimeType, required=True),
-        Property("Operation", StringType),
-        Property("OrganizationId", StringType),
-        Property("UserType", IntegerType),
-        Property("UserKey", StringType),
-        Property("Workload", StringType),
-        Property("UserId", StringType),
-        Property("ClientIP", StringType),
-        Property("UserAgent", StringType),
+        # Properties
+        Property("AccessRequestMessage", StringType),
+        Property("AccessRequestType", StringType),
         Property("Activity", StringType),
-        Property("ItemName", StringType),
+        Property("ActivityId", StringType),
+        Property(
+            "AggregatedWorkspaceInformation",
+            ObjectType(
+                Property("WorkspaceCount", IntegerType),
+                Property("WorkspacesByCapacitySku", StringType),
+                Property("WorkspacesByType", StringType),
+            )
+        ),
+        Property("AppName", StringType),
+        Property("AppId", StringType),
+        Property("AppReportId", StringType),
+        Property("ArtifactId", StringType),
+        Property("ArtifactKind", StringType),
+        Property("ArtifactName", StringType),
+        Property("ArtifactObjectId", StringType),
+        Property("AuditedArtifactInformation",
+            ObjectType(
+                Property("AnnotatedItemType", StringType),
+                Property("ArtifactObjectId", StringType),
+                Property("Id", StringType),
+                Property("Name", StringType),
+            )
+        ),
         Property("CapacityId", StringType),
         Property("CapacityName", StringType),
-        Property("WorkspaceId", StringType),
-        Property("WorkSpaceName", StringType),
-        Property("DatasetId", StringType),
-        Property("DatasetName", StringType),
-        Property("GatewayId", StringType),
-        Property("DatasourceId", StringType),
-        Property("ReportId", StringType),
-        Property("ReportName", StringType),
-        Property("ObjectId", StringType),
-        Property("IsSuccess", BooleanType),
-        Property("ReportType", StringType),
-        Property("RequestId", StringType),
-        Property("ActivityId", StringType),
-        Property("AppName", StringType),
-        Property("AppReportId", StringType),
-        Property("DistributionMethod", StringType),
+        Property("CapacityState", StringType),
+        Property("CapacityUsers", StringType),
+        Property("ClientIP", StringType),
         Property("ConsumptionMethod", StringType),
-        Property("DataflowId", StringType),
-        Property("DataflowName", StringType),
-        Property("DataflowType", StringType),
+        Property("CopiedReportId", StringType),
+        Property("CopiedReportName", StringType),
+        Property("CredentialSetupMode", StringType),
+        Property("CustomVisualAccessTokenResourceId", StringType),
+        Property("CustomVisualAccessTokenSiteUri", StringType),
+        Property("DashboardId", StringType),
+        Property("DashboardName", StringType),
+        Property("DataConnectivityMode", StringType),
         Property(
             "DataflowAccessTokenRequestParameters",
             ObjectType(
-                Property("tokenLifetimeInMinutes", IntegerType),
-                Property("permissions", IntegerType),
                 Property("entityName", StringType),
-                Property("partitionUri", StringType)
+                Property("partitionUri", StringType),
+                Property("permissions", IntegerType),
+                Property("tokenLifetimeInMinutes", IntegerType),
             )
         ),
-        Property("DataflowRefreshScheduleType", StringType),
         Property("DataflowAllowNativeQueries", BooleanType),
-        Property("CustomVisualAccessTokenResourceId", StringType),
-        Property("CustomVisualAccessTokenSiteUri", StringType),
-        Property(
-            "ExportedArtifactInfo",
-            ObjectType(
-                Property("ExportType", StringType),
-                Property("ArtifactType", StringType),
-                Property("ArtifactId", IntegerType)
-            )
-        ),
-        Property("DataConnectivityMode", StringType),
-        Property("LastRefreshTime", StringType),
-        Property(
-            "Schedules",
-            ObjectType(
-                Property("RefreshFrequency", StringType),
-                Property("TimeZone", StringType),
-                Property("Days", ArrayType(StringType)),
-                Property("Time", ArrayType(StringType))
-            )
-        ),
-        Property("ImportId", StringType),
-        Property("ImportType", StringType),
-        Property("ImportSource", StringType),
-        Property("ImportDisplayName", StringType),
-        Property("RefreshType", StringType),
-        Property("DashboardId", StringType),
-        Property("DashboardName", StringType),
+        Property("DataflowId", StringType),
+        Property("DataflowName", StringType),
+        Property("DataflowRefreshScheduleType", StringType),
+        Property("DataflowType", StringType),
+        Property("DatasetCertificationStage", StringType),
+        Property("DatasetId", StringType),
+        Property("DatasetName", StringType),
         Property(
             "Datasets",
             ArrayType(
                 ObjectType(
                     Property("DatasetId", StringType),
-                    Property("DatasetName", StringType)
+                    Property("DatasetName", StringType),
                 )
             )
         ),
-        Property("ModelsSnapshots", ArrayType(IntegerType)),
-        Property(
-            "OrgAppPermission",
-            ObjectType(
-                Property("recipients", StringType),
-                Property("permissions", StringType)
+        Property("DatasourceId", StringType),
+        Property("DatasourceObjectIds", ArrayType(StringType)),
+        Property("Datasources",  
+            ArrayType(
+                ObjectType(
+                    Property("ConnectionDetails", StringType),
+                    Property("DatasourceType", StringType),
+                )
             )
         ),
+        Property("DatasourceType", StringType),
+        Property(
+            "DeploymentPipelineAccesses",
+            ArrayType(
+                ObjectType(
+                    Property("RolePermissions", StringType),
+                    Property("UserObjectId", StringType),
+                )
+            )
+        ),
+        Property("DeploymentPipelineDisplayName", StringType),
+        Property("DeploymentPipelineId", IntegerType),
+        Property("DeploymentPipelineObjectId", StringType),
+        Property("DeploymentPipelineStageOrder", IntegerType),
+        Property("DistributionMethod", StringType),
+        Property("EndPoint", StringType),
+        Property("Experience", StringType),
+        Property(
+            "ExportedArtifactInfo",
+            ObjectType(
+                Property("ArtifactId", IntegerType),
+                Property("ArtifactType", StringType),
+                Property("ExportType", StringType),
+            )
+        ),
+        Property("ExportEventActivityTypeParameter", StringType),
+        Property("ExportEventEndDateTimeParameter", DateTimeType),
+        Property("ExportEventStartDateTimeParameter", DateTimeType),
+        Property("ExternalSubscribeeInformation", StringType),
+        Property(
+           "ExternalSubscribeeInformation",
+            ArrayType(
+                ObjectType(
+                    Property("RecipientEmail", StringType),
+                )
+            )
+        ),
+        Property(
+            "FolderAccessRequests",
+            ArrayType(
+                ObjectType(
+                    Property("RolePermissions", StringType),
+                    Property("UserObjectId", StringType),
+                )
+            )
+        ),
+        Property("FolderDisplayName", StringType),
+        Property("FolderObjectId", StringType),
+        Property("GatewayClusterId", StringType),
+        Property(
+            "GatewayClusters",
+            ArrayType(
+                ObjectType(
+                    Property("id", StringType),
+                    Property("memberGatewaysIds", ArrayType(StringType)),
+                    Property(
+                        "permissions",
+                        ArrayType(
+                            ObjectType(
+                                Property("allowedDataSources", ArrayType(StringType)),
+                                Property("id", StringType),
+                                Property("principalType", StringType),
+                                Property("role", StringType),
+                            )
+                        )
+                    ),
+                    Property("type", StringType),
+                )
+            )
+        ),
+        Property("GatewayId", StringType),
+        Property("GatewayMemberId", StringType),
+        Property("GatewayType", StringType),
         Property(
             "GenerateScreenshotInformation",
             ObjectType(
-                Property("ExportType", IntegerType),
-                Property("ScreenshotEngineType", IntegerType),
                 Property("ExportFormat", StringType),
-                Property("ExportUrl", StringType)
+                Property("ExportType", IntegerType),
+                Property("ExportUrl", StringType),
+                Property("ScreenshotEngineType", IntegerType),
             )
         ),
+        Property("HasFullReportAttachment", BooleanType),
+        Property("ImportDisplayName", StringType),
+        Property("ImportId", StringType),
+        Property("ImportSource", StringType),
+        Property("ImportType", StringType),
+        Property("InstallTeamsAnalyticsInformation",
+            ObjectType(
+                Property("ModelId", StringType),
+                Property("TenantId", StringType),
+                Property("UserId", StringType),
+            )
+        ),
+        Property("IsSuccess", BooleanType),
+        Property("IsTemplateAppFromMarketplace", BooleanType),
+        Property("IsTenantAdminApi", BooleanType),
+        Property("IsUpdateAppActivity", BooleanType),
+        Property("ItemName", StringType),
+        Property("LastRefreshTime", StringType),
+        Property("MembershipInformation", 
+            ArrayType(
+                ObjectType(
+                    Property("MemberEmail", StringType),
+                )
+            )
+        ),
+        Property("MentionedUsersInformation", StringType),
+        Property("ModelId", StringType),
+        Property("ModelsSnapshots", ArrayType(IntegerType)),
+        Property("Monikers", ArrayType(StringType)),
+        Property("ObjectDisplayName", StringType),
+        Property("ObjectId", StringType),
+        Property("ObjectType", StringType),
+        Property("Operation", StringType),
+        Property("OrganizationId", StringType),
+        Property(
+            "OrgAppPermission",
+            ObjectType(
+                Property("permissions", StringType),
+                Property("recipients", StringType),
+            )
+        ),
+        Property("OriginalOwner", StringType),
+        Property(
+            "PaginatedReportDataSources",
+            ArrayType(
+                ObjectType(
+                    Property("connectionString", StringType),
+                    Property("credentialRetrievalType", StringType),
+                    Property("", StringType),
+                    Property("name", StringType),
+                    Property("provider", StringType),
+                )
+            )
+        ),
+        Property("PinReportToTabInformation", 
+            ObjectType(
+                Property("ChannelId", StringType),
+                Property("ChannelName", StringType),
+                Property("DatasetId", StringType),
+                Property("DatasetName", StringType),
+                Property("ReportId", StringType),
+                Property("ReportName", StringType),
+                Property("TabName", StringType),
+                Property("TeamId", StringType),
+                Property("TeamName", StringType),
+                Property("TeamsAppId", StringType),
+                Property("UserId", StringType),
+            )
+        ),
+        Property("RecordType", IntegerType),
+        Property("RefreshType", StringType),
+        Property("ReportCertificationStage", StringType),
+        Property("ReportId", StringType),
+        Property("ReportName", StringType),
+        Property("ReportType", StringType),
+        Property("RequestId", StringType),
+        Property("ResultStatus", StringType),
+        Property(
+            "Schedules",
+            ObjectType(
+                Property("Days", ArrayType(StringType)),
+                Property("RefreshFrequency", StringType),
+                Property("Time", ArrayType(StringType)),
+                Property("TimeZone", StringType),
+            )
+        ),
+        Property("ShareLinkId", StringType),
         Property("SharingAction", StringType),
         Property(
             "SharingInformation",
             ArrayType(
                 ObjectType(
                     Property("RecipientEmail", StringType),
-                    Property("ResharePermission", StringType)
+                    Property("ResharePermission", StringType),
                 )
             )
         ),
-        Property("ArtifactId", StringType),
-        Property("ArtifactName", StringType),
-        Property("FolderObjectId", StringType),
-        Property("FolderDisplayName", StringType),
-        Property(
-            "FolderAccessRequests",
-            ArrayType(
-                ObjectType(
-                    Property("RolePermissions", StringType),
-                    Property("UserObjectId", StringType)
-                )
-            )
-        ),
-        Property("ExportEventStartDateTimeParameter", DateTimeType),
-        Property("ExportEventEndDateTimeParameter", DateTimeType),
-        Property("ExportEventActivityTypeParameter", StringType),
-        Property("CapacityUsers", StringType),
-        Property("CapacityState", StringType),
-        Property("DatasetCertificationStage", StringType),
-        Property("ReportCertificationStage", StringType),
-        Property("DeploymentPipelineId", IntegerType),
-        Property("DeploymentPipelineObjectId", StringType),
-        Property("DeploymentPipelineDisplayName", StringType),
-        Property("DeploymentPipelineStageOrder", IntegerType),
-        Property(
-            "DeploymentPipelineAccesses",
-            ArrayType(
-                ObjectType(
-                    Property("RolePermissions", StringType),
-                    Property("UserObjectId", StringType)
-                )
-            )
-        ),
-        Property("TileText", StringType),
-        Property("TableName", StringType),
-        Property("TemplateAppObjectId", StringType),
-        Property("TemplatePackageName", StringType),
-        Property("TemplateAppVersion", StringType),
-        Property("TemplateAppOwnerTenantObjectId", StringType),
-        Property("TemplateAppFolderObjectId", StringType),
-        Property("TemplateAppIsInstalledWithAutomation", BooleanType),
-        Property("IsTemplateAppFromMarketplace", BooleanType),
-        Property("IsUpdateAppActivity", BooleanType),
+        Property("SharingScope", StringType),
         Property("SwitchState", StringType),
         Property(
             "SubscribeeInformation",
             ArrayType(
                 ObjectType(
+                    Property("ObjectId", StringType),
                     Property("RecipientEmail", StringType),
                     Property("RecipientName", StringType),
-                    Property("ObjectId", StringType)
                 )
             )
         ),
-        # ExternalSubscribeeInformation has only ever shown as    "ExternalSubscribeeInformation": []
-        # Don't know proper 
-        #Property("ExternalSubscribeeInformation", StringType),
-        #Property(
-        #    "ExternalSubscribeeInformation",
-        #    ArrayType(
-        #        StringType()
-        #    )
-        #),
         Property(
             "SubscriptionSchedule",
             ObjectType(
+                Property("DaysOfTheMonth",StringType),
+                Property("EndDate", DateTimeType),
+                Property("StartDate", DateTimeType),
+                Property(
+                    "Time",
+                    ArrayType(StringType)
+                ),
+                Property("TimeZone", StringType),
                 Property("Type", StringType),
                 Property(
                     "WeekDays",
                     ArrayType(StringType)
                 ),
-                Property("StartDate", DateTimeType),
-                Property("EndDate", DateTimeType),
-                Property("TimeZone", StringType),
-                Property(
-                    "Time",
-                    ArrayType(StringType)
-                ),
             )
         ),
+        Property("TableName", StringType),
+        Property("TakingOverOwner", StringType),
+        Property("TargetWorkspaceId", StringType),
+        Property("TemplateAppFolderObjectId", StringType),
+        Property("TemplateAppIsInstalledWithAutomation", BooleanType),
+        Property("TemplateAppObjectId", StringType),
+        Property("TemplateAppOwnerTenantObjectId", StringType),
+        Property("TemplateAppVersion", StringType),
+        Property("TemplatePackageName", StringType),
+        Property("TileText", StringType),
+        Property(
+            "UpdateFeaturedTables",
+            ArrayType(
+                ObjectType(
+                    Property("State", StringType),
+                    Property("TableName", StringType),
+                )
+            )
+        ),
+        Property("UserAgent", StringType),
+        Property("UserId", StringType),
         Property(
             "UserInformation",
             ObjectType(
@@ -317,71 +438,32 @@ class ActivityEventsStream(TapPowerBIMetadataStream):
                 Property(
                     "UsersRemoved",
                     ArrayType(StringType)
-                )
+                ),
             )
         ),
+        Property("UserKey", StringType),
+        Property("UserType", IntegerType),
+        Property("Workload", StringType),
         Property(
-            "AggregatedWorkspaceInformation",
-            ObjectType(
-                Property("WorkspaceCount", IntegerType),
-                Property("WorkspacesByCapacitySku", StringType),
-                Property("WorkspacesByType", StringType)
-            )
-        ),        
-        Property("GatewayType", StringType),
-        Property("DatasourceType", StringType),
-        Property("AuditedArtifactInformation",
-            ObjectType(
-                Property("Id", StringType),
-                Property("Name", StringType),
-                Property("ArtifactObjectId", StringType),
-                Property("AnnotatedItemType", StringType)
-            )
-        ),
-        Property("GatewayClusterId", StringType),
-        Property(
-            "GatewayClusters",
+            "WorkspaceAccessList", 
             ArrayType(
                 ObjectType(
-                    Property("id", StringType),
                     Property(
-                        "permissions",
+                        "UserAccessList",
                         ArrayType(
                             ObjectType(
-                                Property("id", StringType),
-                                Property("principalType", StringType),
-                                Property("role", StringType),
-                                Property("allowedDataSources", ArrayType(StringType))
+                                Property("GroupUserAccessRight", StringType),
+                                Property("Identifier", StringType),
+                                Property("PrincipalType", StringType),
+                                Property("UserEmailAddress", StringType),
                             )
-                        )
+                        ),
                     ),
-                    Property("type", StringType),
-                    Property("memberGatewaysIds", ArrayType(StringType))
+                    Property("WorkspaceId", StringType),
                 )
             )
         ),
-        Property("GatewayMemberId", StringType),
-        Property("IsTenantAdminApi", BooleanType),
-        Property(
-            "UpdateFeaturedTables",
-            ArrayType(
-                ObjectType(
-                    Property("TableName", StringType),
-                    Property("State", StringType)
-                )
-            )
-        ),
-        Property("TakingOverOwner", StringType),
-        Property(
-            "PaginatedReportDataSources",
-            ArrayType(
-                ObjectType(
-                    Property("connectionString", StringType),
-                    Property("credentialRetrievalType", StringType),
-                    Property("provider", StringType),
-                    Property("name", StringType),
-                    Property("dMMoniker", StringType)
-                )
-            )
-        )
+        Property("WorkspaceId", StringType),
+        Property("WorkSpaceName", StringType),
+        Property("WorkspacesSemicolonDelimitedList", StringType),
     ).to_dict()

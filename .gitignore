@@ -2,6 +2,9 @@
 *.csv
 *.jsonl
 
+# Hide log output
+*.txt
+
 # Hide secrets and internal config files
 **/.secrets/**
 
